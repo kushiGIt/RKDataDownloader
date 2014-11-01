@@ -25,12 +25,18 @@
     
     RKDataDownloader*test1=[[RKDataDownloader alloc]initWithUrlArray:array];
     [test1 startDownloads];
+    
+    test1.delegate=self;
 
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+-(void)fileDownloadProgress:(NSNumber *)progress{
+    NSLog(@"%@",progress);
 }
 
 @end

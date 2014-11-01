@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "RKDataDownloader.h"
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController<RKDataDownloaderDelegate>
 
 
 @end

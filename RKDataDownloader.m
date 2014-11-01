@@ -17,6 +17,7 @@
 
 @property (nonatomic, strong) NSURL *docDirectoryURL;
 
+
 -(int)getFileDownloadInfoIndexWithTaskIdentifier:(unsigned long)taskIdentifier;
 
 @end
@@ -170,7 +171,12 @@
             
             fdi.downloadProgress = (double)totalBytesWritten / (double)totalBytesExpectedToWrite;
             
-#warning progress!!
+            if ([self.delegate respondsToSelector:@selector(fileDownloadProgress:)]) {
+                
+                [self.delegate fileDownloadProgress:[NSNumber numberWithDouble:fdi.downloadProgress]];
+                
+            }
+            
         }];
     }
 }
@@ -182,7 +188,6 @@
     [self.session getTasksWithCompletionHandler:^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
         
         if ([downloadTasks count] == 0) {
-            
             if (appDelegate.backgroundTransferCompletionHandler != nil) {
                 
                 void(^completionHandler)() = appDelegate.backgroundTransferCompletionHandler;
@@ -193,10 +198,10 @@
                     
                     completionHandler();
                     
+                    // Show a local notification when all downloads are over.
                     UILocalNotification *localNotification = [[UILocalNotification alloc] init];
-                    localNotification.alertBody = @"更新が完了しました。";
+                    localNotification.alertBody = @"ダウンロードが完了しました。";
                     [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
-                
                 }];
             }
         }

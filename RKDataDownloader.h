@@ -20,10 +20,20 @@
     
 }
 
+@property id<RKDataDownloaderDelegate>delegate;
+
 @property (weak, nonatomic) IBOutlet UITableView *tblFiles;
 
 -(void)startDownloads;
 
 -(id)initWithUrlArray:(NSArray*)urlArray;
+
+@end
+
+@protocol RKDataDownloaderDelegate <NSObject>
+
+@optional
+
+-(void)fileDownloadProgress:(NSNumber*)progress;
 
 @end
