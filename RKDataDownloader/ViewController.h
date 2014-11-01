@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "RKDataDownloader.h"
 
 @interface ViewController : UIViewController
 

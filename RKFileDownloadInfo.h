@@ -10,8 +10,6 @@
 
 @interface RKFileDownloadInfo : NSObject
 
-@property (nonatomic, strong) NSString *fileTitle;
-
 @property (nonatomic, strong) NSString *downloadSource;
 
 @property (nonatomic, strong) NSURLSessionDownloadTask *downloadTask;
@@ -26,6 +24,6 @@
 
 @property (nonatomic) unsigned long taskIdentifier;
 
--(id)initWithFileTitle:(NSString *)title andDownloadSource:(NSString *)source;
+-(id)initWithDownloadSource:(NSString *)source;
 
 @end

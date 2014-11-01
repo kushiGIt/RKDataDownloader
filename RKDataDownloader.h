@@ -7,7 +7,23 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import "RKFileDownloadInfo.h"
+#import "AppDelegate.h"
 
-@interface RKDataDownloader : NSObject
+@class RKDataDownloader;
+
+@protocol RKDataDownloaderDelegate;
+
+
+@interface RKDataDownloader : NSObject<NSURLSessionDelegate>{
+    
+}
+
+@property (weak, nonatomic) IBOutlet UITableView *tblFiles;
+
+-(void)startDownloads;
+
+-(id)initWithUrlArray:(NSArray*)urlArray;
 
 @end

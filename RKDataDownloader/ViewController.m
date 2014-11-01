@@ -17,6 +17,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    NSMutableArray*array = [[NSMutableArray alloc] init];
+    [array addObject:@"https://developer.apple.com/library/ios/documentation/iphone/conceptual/iphoneosprogrammingguide/iphoneappprogrammingguide.pdf"];
+    [array addObject:@"https://developer.apple.com/library/ios/documentation/NetworkingInternetWeb/Conceptual/NetworkingOverview/NetworkingOverview.pdf"];
+    [array addObject:@"https://developer.apple.com/library/ios/documentation/AudioVideo/Conceptual/AVFoundationPG/AVFoundationPG.pdf"];
+    [array addObject:@"http://manuals.info.apple.com/MANUALS/1000/MA1565/en_US/iphone_user_guide.pdf"];
+    
+    RKDataDownloader*test1=[[RKDataDownloader alloc]initWithUrlArray:array];
+    [test1 startDownloads];
+
 }
 
 - (void)didReceiveMemoryWarning {
