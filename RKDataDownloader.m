@@ -86,7 +86,7 @@
     NSString*urlStr=[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]];
 
     
-    if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:)]) {
+    if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:dataWithUrl:)]) {
         
         [self.delegate didFinishDownloadData:downloededData withError:readingDataError dataWithUrl:urlStr];
     
