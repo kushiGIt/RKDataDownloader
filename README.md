@@ -21,3 +21,6 @@ It is so simple!
     NSLog(@"complete recive data.Data size is %ld byte.",data.length);
     
     }
+
+ViewContloller.h and .m is Demo!!
+By all means, please take a look!
