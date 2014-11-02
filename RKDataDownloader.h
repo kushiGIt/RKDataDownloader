@@ -57,6 +57,6 @@
  *  @param data             get from tmp file
  *  @param readingDataError get error when read from tmp file
  */
--(void)didFinishDownloadData:(NSData*)data withError:(NSError*)readingDataError;
+-(void)didFinishDownloadData:(NSData*)data withError:(NSError*)readingDataError dataWithUrl:(NSString*)urlStr;
 
 @end

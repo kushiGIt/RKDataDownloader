@@ -8,7 +8,9 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController (){
+    IBOutlet UIProgressView *progressView;
+}
 
 @end
 
@@ -36,12 +38,21 @@
 }
 
 -(void)fileDownloadProgress:(NSNumber *)progress{
-    NSLog(@"%@",progress);
+    
+    NSLog(@"%f",[progress floatValue]);
+    
+    dispatch_queue_t mainQueue = dispatch_get_main_queue();
+    dispatch_async(mainQueue, ^{
+        
+        [progressView setProgress:[progress floatValue] animated:YES];
+        
+    });
+    
 }
--(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError{
+-(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError dataWithUrl:(NSString *)urlStr{
     
     NSLog(@"%ld",(unsigned long)data.length);
     NSLog(@"%@",readingDataError);
-
+    
 }
 @end

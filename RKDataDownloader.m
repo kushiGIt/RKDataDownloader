@@ -83,10 +83,12 @@
     
     NSError*readingDataError;
     NSData*downloededData=[NSData dataWithContentsOfURL:location options:NSDataReadingUncached error:&readingDataError];
+    NSString*urlStr=[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]];
+
     
     if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:)]) {
         
-        [self.delegate didFinishDownloadData:downloededData withError:readingDataError];
+        [self.delegate didFinishDownloadData:downloededData withError:readingDataError dataWithUrl:urlStr];
     
     }
     
@@ -124,7 +126,7 @@
             
             dispatch_sync(dispatch_get_main_queue(), ^{
                 
-                [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[[downloadTask originalRequest]URL]];
+                [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]]];
                 
                 for (NSNumber *progressNum in [self.taskDataDic allValues]) {
                     
