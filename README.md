@@ -3,14 +3,14 @@ RKDataDownloader
 #USAGE
 It is so simple!
 
-   - (void)viewDidLoad{
+   -(void)viewDidLoad{
    
    RKDataDownloader*dataDownloader=[[RKDataDownloader alloc]initWithUrlArray:urlArray];
    dataDownloader.delegate=self;
    [dataDownloader startDownloads];
    
    }
-   #pragma mark - RKDownloader delegate
+   //pragma mark - RKDownloader delegate
   -(void)fileDownloadProgress:(NSNumber *)progress{
     
     NSLog(@"%@",progress);
