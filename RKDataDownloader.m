@@ -19,6 +19,8 @@
 
 @property (nonatomic) double taskCount;
 
+@property BOOL isInitWithArray;
+
 @end
 
 @implementation RKDataDownloader
@@ -44,6 +46,8 @@
             sessionConfiguration.HTTPMaximumConnectionsPerHost = 5;
             
             self.session=[NSURLSession sessionWithConfiguration:sessionConfiguration delegate:(id)self delegateQueue:nil];
+            
+            self.isInitWithArray=YES;
         
         }
         
@@ -57,11 +61,19 @@
 }
 -(void)startDownloads{
     
-    for (int i=0; i<[self.taskDataDic.allKeys count]; i++) {
+    if (self.isInitWithArray==YES) {
         
-        self.sessionTask = [self.session downloadTaskWithURL:[NSURL URLWithString:self.taskDataDic.allKeys[i]]];
-        [self.sessionTask resume];
+        for (int i=0; i<[self.taskDataDic.allKeys count]; i++) {
+            
+            self.sessionTask = [self.session downloadTaskWithURL:[NSURL URLWithString:self.taskDataDic.allKeys[i]]];
+            [self.sessionTask resume];
+            
+        }
     
+    }else{
+        
+        [[NSException exceptionWithName:@"RKDownloader init exception" reason:@"you must use -(void)initWithArray: first. You musu not use -(id)init." userInfo:nil]raise];
+        
     }
     
 }
