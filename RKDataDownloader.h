@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "RKFileDownloadInfo.h"
 #import "AppDelegate.h"
 
 @class RKDataDownloader;
@@ -22,8 +21,6 @@
 
 @property id<RKDataDownloaderDelegate>delegate;
 
-@property (weak, nonatomic) IBOutlet UITableView *tblFiles;
-
 -(void)startDownloads;
 
 -(id)initWithUrlArray:(NSArray*)urlArray;
@@ -35,5 +32,5 @@
 @optional
 
 -(void)fileDownloadProgress:(NSNumber*)progress;
-
+-(void)didFinishDownloadData:(NSData*)data withError:(NSError*)readingDataError;
 @end

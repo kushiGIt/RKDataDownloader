@@ -14,7 +14,6 @@
 		77C355921A04F7E500EB35B4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77C355911A04F7E500EB35B4 /* Images.xcassets */; };
 		77C355951A04F7E500EB35B4 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 77C355931A04F7E500EB35B4 /* LaunchScreen.xib */; };
 		77C355A11A04F7E500EB35B4 /* RKDataDownloaderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355A01A04F7E500EB35B4 /* RKDataDownloaderTests.m */; };
-		77C355AC1A04F81400EB35B4 /* RKFileDownloadInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355AB1A04F81400EB35B4 /* RKFileDownloadInfo.m */; };
 		77C355AF1A04F87000EB35B4 /* RKDataDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355AE1A04F87000EB35B4 /* RKDataDownloader.m */; };
 /* End PBXBuildFile section */
 
@@ -42,8 +41,6 @@
 		77C3559A1A04F7E500EB35B4 /* RKDataDownloaderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RKDataDownloaderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		77C3559F1A04F7E500EB35B4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		77C355A01A04F7E500EB35B4 /* RKDataDownloaderTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RKDataDownloaderTests.m; sourceTree = "<group>"; };
-		77C355AA1A04F81400EB35B4 /* RKFileDownloadInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKFileDownloadInfo.h; sourceTree = "<group>"; };
-		77C355AB1A04F81400EB35B4 /* RKFileDownloadInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKFileDownloadInfo.m; sourceTree = "<group>"; };
 		77C355AD1A04F87000EB35B4 /* RKDataDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKDataDownloader.h; sourceTree = "<group>"; };
 		77C355AE1A04F87000EB35B4 /* RKDataDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKDataDownloader.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -72,8 +69,6 @@
 				77C355831A04F7E500EB35B4 /* RKDataDownloader */,
 				77C3559D1A04F7E500EB35B4 /* RKDataDownloaderTests */,
 				77C355821A04F7E500EB35B4 /* Products */,
-				77C355AA1A04F81400EB35B4 /* RKFileDownloadInfo.h */,
-				77C355AB1A04F81400EB35B4 /* RKFileDownloadInfo.m */,
 				77C355AD1A04F87000EB35B4 /* RKDataDownloader.h */,
 				77C355AE1A04F87000EB35B4 /* RKDataDownloader.m */,
 			);
@@ -229,7 +224,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				77C355AC1A04F81400EB35B4 /* RKFileDownloadInfo.m in Sources */,
 				77C355AF1A04F87000EB35B4 /* RKDataDownloader.m in Sources */,
 				77C3558D1A04F7E500EB35B4 /* ViewController.m in Sources */,
 				77C3558A1A04F7E500EB35B4 /* AppDelegate.m in Sources */,
@@ -426,6 +420,7 @@
 				77C355A61A04F7E500EB35B4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		77C355A71A04F7E500EB35B4 /* Build configuration list for PBXNativeTarget "RKDataDownloaderTests" */ = {
 			isa = XCConfigurationList;
@@ -434,6 +429,7 @@
 				77C355A91A04F7E500EB35B4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -13,12 +13,11 @@
 
 @property (nonatomic, strong) NSURLSession *session;
 
-@property (nonatomic, strong) NSMutableArray *arrFileDownloadData;
+@property (nonatomic, strong) NSURLSessionDownloadTask *sessionTask;
 
-@property (nonatomic, strong) NSURL *docDirectoryURL;
+@property (nonatomic) NSMutableDictionary*taskDataDic;
 
-
--(int)getFileDownloadInfoIndexWithTaskIdentifier:(unsigned long)taskIdentifier;
+@property (nonatomic) double taskCount;
 
 @end
 
@@ -31,18 +30,17 @@
         
         if (self==[super init]) {
             
-            self.arrFileDownloadData = [[NSMutableArray alloc] init];
+            self.taskDataDic=[[NSMutableDictionary alloc]init];
             
             for (NSString*sorceURL in urlArray) {
+                [self.taskDataDic setObject:[NSNumber numberWithDouble:0.0] forKey:sorceURL];
                 
-                [self.arrFileDownloadData addObject:[[RKFileDownloadInfo alloc]initWithDownloadSource:sorceURL]];
                 
             }
             
-            NSArray *URLs = [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask];
-            self.docDirectoryURL=[URLs objectAtIndex:0];
+            self.taskCount=(double)self.taskDataDic.count;
             
-            NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"com.BGTransferDemo"];
+            NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"com.RKDownloader"];
             sessionConfiguration.HTTPMaximumConnectionsPerHost = 5;
             
             self.session=[NSURLSession sessionWithConfiguration:sessionConfiguration delegate:(id)self delegateQueue:nil];
@@ -59,85 +57,27 @@
 }
 -(void)startDownloads{
     
-    for (int i=0; i<[self.arrFileDownloadData count]; i++) {
+    for (int i=0; i<[self.taskDataDic.allKeys count]; i++) {
         
-        RKFileDownloadInfo *fdi = [self.arrFileDownloadData objectAtIndex:i];
-        
-        if (!fdi.isDownloading) {
-            
-            if (fdi.taskIdentifier == -1) {
-                
-                fdi.downloadTask = [self.session downloadTaskWithURL:[NSURL URLWithString:fdi.downloadSource]];
-            
-            }else{
-                
-                fdi.downloadTask = [self.session downloadTaskWithResumeData:fdi.taskResumeData];
-            
-            }
-            
-            fdi.taskIdentifier = fdi.downloadTask.taskIdentifier;
-            [fdi.downloadTask resume];
-            fdi.isDownloading = YES;
-        }
-    }
-}
--(int)getFileDownloadInfoIndexWithTaskIdentifier:(unsigned long)taskIdentifier{
-    int index = 0;
+        self.sessionTask = [self.session downloadTaskWithURL:[NSURL URLWithString:self.taskDataDic.allKeys[i]]];
+        [self.sessionTask resume];
     
-    for (int i=0; i<[self.arrFileDownloadData count]; i++) {
-        
-        RKFileDownloadInfo *fdi = [self.arrFileDownloadData objectAtIndex:i];
-        if (fdi.taskIdentifier == taskIdentifier) {
-            
-            index = i;
-            break;
-        
-        }
     }
     
-    return index;
 }
 #pragma mark - NSURLSession Delegate method implementation
 
 -(void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location{
     
-    NSError *error;
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError*readingDataError;
+    NSData*downloededData=[NSData dataWithContentsOfURL:location options:NSDataReadingUncached error:&readingDataError];
     
-    NSString *destinationFilename = downloadTask.originalRequest.URL.lastPathComponent;
-    NSURL *destinationURL = [self.docDirectoryURL URLByAppendingPathComponent:destinationFilename];
-    
-    if ([fileManager fileExistsAtPath:[destinationURL path]]) {
+    if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:)]) {
         
-        [fileManager removeItemAtURL:destinationURL error:nil];
+        [self.delegate didFinishDownloadData:downloededData withError:readingDataError];
     
     }
     
-    BOOL success = [fileManager copyItemAtURL:location toURL:destinationURL error:&error];
-    
-    if (success) {
-        int index = [self getFileDownloadInfoIndexWithTaskIdentifier:downloadTask.taskIdentifier];
-        RKFileDownloadInfo *fdi = [self.arrFileDownloadData objectAtIndex:index];
-        
-        fdi.isDownloading = NO;
-        fdi.downloadComplete = YES;
-        
-        fdi.taskIdentifier = -1;
-        
-        fdi.taskResumeData = nil;
-        
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            
-            [self.tblFiles reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]]
-                                 withRowAnimation:UITableViewRowAnimationNone];
-            
-        }];
-        
-    }else{
-        
-        NSLog(@"Unable to copy temp file. Error: %@", [error localizedDescription]);
-    
-    }
 }
 
 
@@ -161,33 +101,52 @@
     if (totalBytesExpectedToWrite == NSURLSessionTransferSizeUnknown) {
         
         NSLog(@"Unknown transfer size");
-    
+        
     }else{
         
-        int index = [self getFileDownloadInfoIndexWithTaskIdentifier:downloadTask.taskIdentifier];
-        RKFileDownloadInfo *fdi = [self.arrFileDownloadData objectAtIndex:index];
+        __block double progress=0.0;
+
         
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
             
-            fdi.downloadProgress = (double)totalBytesWritten / (double)totalBytesExpectedToWrite;
-            
-            if ([self.delegate respondsToSelector:@selector(fileDownloadProgress:)]) {
+            dispatch_sync(dispatch_get_main_queue(), ^{
                 
-                [self.delegate fileDownloadProgress:[NSNumber numberWithDouble:fdi.downloadProgress]];
+                [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[[downloadTask originalRequest]URL]];
                 
-            }
+                for (NSNumber *progressNum in [self.taskDataDic allValues]) {
+                    
+                    progress=progress+[progressNum doubleValue];
+                    
+                }
+                
+            });
             
-        }];
+            dispatch_semaphore_signal(semaphore);
+        
+        });
+        
+        while(dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW))
+            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1f]];
+        
+        if ([self.delegate respondsToSelector:@selector(fileDownloadProgress:)]) {
+            
+            [self.delegate fileDownloadProgress:[NSNumber numberWithDouble:progress/self.taskCount]];
+            
+        }
+
     }
 }
 
 
 -(void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session{
+    
     AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
     
     [self.session getTasksWithCompletionHandler:^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
         
         if ([downloadTasks count] == 0) {
+            
             if (appDelegate.backgroundTransferCompletionHandler != nil) {
                 
                 void(^completionHandler)() = appDelegate.backgroundTransferCompletionHandler;
@@ -198,14 +157,15 @@
                     
                     completionHandler();
                     
-                    // Show a local notification when all downloads are over.
                     UILocalNotification *localNotification = [[UILocalNotification alloc] init];
                     localNotification.alertBody = @"ダウンロードが完了しました。";
                     [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
+                
                 }];
             }
         }
     }];
+
 }
 
 @end

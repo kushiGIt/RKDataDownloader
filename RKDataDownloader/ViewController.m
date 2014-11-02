@@ -38,5 +38,10 @@
 -(void)fileDownloadProgress:(NSNumber *)progress{
     NSLog(@"%@",progress);
 }
+-(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError{
+    
+    NSLog(@"%ld",(unsigned long)data.length);
+    NSLog(@"%@",readingDataError);
 
+}
 @end
