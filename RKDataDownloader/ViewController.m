@@ -20,10 +20,10 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     NSMutableArray*array = [[NSMutableArray alloc] init];
-    [array addObject:@"https://developer.apple.com/library/ios/documentation/iphone/conceptual/iphoneosprogrammingguide/iphoneappprogrammingguide.pdf"];
-    [array addObject:@"https://developer.apple.com/library/ios/documentation/NetworkingInternetWeb/Conceptual/NetworkingOverview/NetworkingOverview.pdf"];
-    [array addObject:@"https://developer.apple.com/library/ios/documentation/AudioVideo/Conceptual/AVFoundationPG/AVFoundationPG.pdf"];
-    [array addObject:@"http://manuals.info.apple.com/MANUALS/1000/MA1565/en_US/iphone_user_guide.pdf"];
+    [array addObject:@"http://upload.wikimedia.org/wikipedia/ja/1/17/日本猫_2008-1.jpg"];
+    [array addObject:@"http://amenama.on.arena.ne.jp/wordpress/wp-content/uploads/2014/08/cat.png"];
+    [array addObject:@"http://www.kgw-sense.com/homare/blog/udata/猫.jpg"];
+    [array addObject:@"http://bluemark.info/wp-content/uploads/2013/02/3a4465fcdc9a8bb92e40ac1456d52d6f.jpg"];
     
     RKDataDownloader*test1=[[RKDataDownloader alloc]initWithUrlArray:array];
     [test1 startDownloads];
@@ -51,8 +51,18 @@
 }
 -(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError dataWithUrl:(NSString *)urlStr{
     
-    NSLog(@"%ld",(unsigned long)data.length);
-    NSLog(@"%@",readingDataError);
+//    NSLog(@"%ld",(unsigned long)data.length);
+//    NSLog(@"%@",readingDataError);
     
+}
+-(void)didFinishAllDownloadsWithDataDictinary:(NSDictionary *)dataDic withErrorDic:(NSDictionary *)errorDic{
+    
+    
+    dispatch_queue_t mainQueue = dispatch_get_main_queue();
+    dispatch_async(mainQueue, ^{
+        
+        NSLog(@"errordic=%@",errorDic);
+        NSLog(@"data=%@",dataDic);
+    });
 }
 @end

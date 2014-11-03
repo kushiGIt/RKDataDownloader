@@ -19,6 +19,12 @@
 
 @property (nonatomic) double taskCount;
 
+@property (nonatomic) int completeTaskCount;
+
+@property (nonatomic) NSMutableDictionary*complrteDataDic;
+
+@property (nonatomic) NSMutableDictionary*completeDataErrorDic;
+
 @property BOOL isInitWithArray;
 
 @end
@@ -33,6 +39,8 @@
         if (self==[super init]) {
             
             self.taskDataDic=[[NSMutableDictionary alloc]init];
+            self.completeDataErrorDic=[[NSMutableDictionary alloc]init];
+            self.complrteDataDic=[[NSMutableDictionary alloc]init];
             
             for (NSString*sorceURL in urlArray) {
                 [self.taskDataDic setObject:[NSNumber numberWithDouble:0.0] forKey:sorceURL];
@@ -48,6 +56,8 @@
             self.session=[NSURLSession sessionWithConfiguration:sessionConfiguration delegate:(id)self delegateQueue:nil];
             
             self.isInitWithArray=YES;
+            
+            self.completeTaskCount=0;
         
         }
         
@@ -81,32 +91,88 @@
 
 -(void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location{
     
-    NSError*readingDataError;
-    NSData*downloededData=[NSData dataWithContentsOfURL:location options:NSDataReadingUncached error:&readingDataError];
-    NSString*urlStr=[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]];
-
-    
-    if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:dataWithUrl:)]) {
+    if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:dataWithUrl:)] || [self.delegate respondsToSelector:@selector(didFinishAllDownloadsWithDataDictinary:withErrorDic:)]) {
         
-        [self.delegate didFinishDownloadData:downloededData withError:readingDataError dataWithUrl:urlStr];
-    
+        __block NSError*readingDataError;
+        __block NSData*downloededData;
+        __block NSString*urlStr;
+        
+        dispatch_semaphore_t semaphone =dispatch_semaphore_create(0);
+        dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
+            
+            downloededData=[NSData dataWithContentsOfURL:location options:NSDataReadingUncached error:&readingDataError];
+            urlStr=[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]];
+            
+            if (downloededData.length==0) {
+                
+                [self.complrteDataDic setObject:[NSNull null] forKey:urlStr];
+                
+            }else{
+                
+                [self.complrteDataDic setObject:downloededData forKey:urlStr];
+                
+            }
+            
+            if (readingDataError==nil) {
+                
+                 [self.completeDataErrorDic setObject:[NSNull null] forKey:urlStr];
+            
+            }else{
+                
+                [self.completeDataErrorDic setObject:readingDataError forKey:urlStr];
+            
+            }
+            
+            dispatch_semaphore_signal(semaphone);
+        
+        });
+        dispatch_semaphore_wait(semaphone, DISPATCH_TIME_FOREVER);
+        
+        if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:dataWithUrl:)]) {
+            
+            [self.delegate didFinishDownloadData:downloededData withError:readingDataError dataWithUrl:urlStr];
+            
+        }
+        
     }
-    
+
 }
 
 
 -(void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error{
     
+    NSLog(@"%@",task);
+    NSLog(@"%@",session);
+    
     if (error != nil) {
         
         NSLog(@"Download completed with error: %@", [error localizedDescription]);
-    
+        NSLog(@"%@",[NSString stringWithFormat:@"%@",[[task originalRequest]URL]]);
+        
+        [self.complrteDataDic setObject:[NSNull null] forKey:[NSString stringWithFormat:@"%@",[[task originalRequest]URL]]];
+        [self.completeDataErrorDic setObject:error forKey:[NSString stringWithFormat:@"%@",[[task originalRequest]URL]]];
+        self.completeTaskCount--;
+        self.taskCount--;
+        
+        
     }else{
         
         NSLog(@"Download finished successfully.");
-    
+        
     }
+    
+    self.completeTaskCount++;
 
+    
+    
+    if ([self.delegate respondsToSelector:@selector(didFinishAllDownloadsWithDataDictinary:withErrorDic:)]){
+        
+        if (self.completeTaskCount==self.taskCount) {
+            
+            [self.delegate didFinishAllDownloadsWithDataDictinary:self.complrteDataDic withErrorDic:self.completeDataErrorDic];
+            
+        }
+    }
 }
 
 
@@ -118,32 +184,33 @@
         
     }else{
         
-        __block double progress=0.0;
-
-        
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        if ([self.delegate respondsToSelector:@selector(fileDownloadProgress:)]) {
             
-            dispatch_sync(dispatch_get_main_queue(), ^{
+            __block double progress=0.0;
+            
+            
+            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                 
-                [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]]];
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    
+                    [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]]];
+                    
+                    for (NSNumber *progressNum in [self.taskDataDic allValues]) {
+                        
+                        progress=progress+[progressNum doubleValue];
+                        
+                    }
+                    
+                });
                 
-                for (NSNumber *progressNum in [self.taskDataDic allValues]) {
-                    
-                    progress=progress+[progressNum doubleValue];
-                    
-                }
+                dispatch_semaphore_signal(semaphore);
                 
             });
             
-            dispatch_semaphore_signal(semaphore);
-        
-        });
-        
-        while(dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW))
-            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1f]];
-        
-        if ([self.delegate respondsToSelector:@selector(fileDownloadProgress:)]) {
+            while(dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW))
+                [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1f]];
+
             
             [self.delegate fileDownloadProgress:[NSNumber numberWithDouble:progress/self.taskCount]];
             

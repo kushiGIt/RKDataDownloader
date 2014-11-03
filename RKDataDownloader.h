@@ -59,4 +59,6 @@
  */
 -(void)didFinishDownloadData:(NSData*)data withError:(NSError*)readingDataError dataWithUrl:(NSString*)urlStr;
 
+-(void)didFinishAllDownloadsWithDataDictinary:(NSDictionary*)dataDic withErrorDic:(NSDictionary*)errorDic;
+
 @end
