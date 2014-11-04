@@ -42,7 +42,7 @@
             self.completeDataErrorDic=[[NSMutableDictionary alloc]init];
             self.complrteDataDic=[[NSMutableDictionary alloc]init];
             
-            for (NSString*sorceURL in urlArray) {
+            for (NSString*sorceURL in [self encodeUrlFromJapaneseUrl:urlArray]) {
                 [self.taskDataDic setObject:[NSNumber numberWithDouble:0.0] forKey:sorceURL];
                 
                 
@@ -141,12 +141,13 @@
 
 -(void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error{
     
-    NSLog(@"%@",task);
-    NSLog(@"%@",session);
+    NSLog(@"%@",[[self.sessionTask originalRequest]URL]);
+    NSLog(@"%@",self.sessionTask);
+    NSLog(@"%lu",(unsigned long)task.taskIdentifier);
     
     if (error != nil) {
         
-        NSLog(@"Download completed with error: %@", [error localizedDescription]);
+        NSLog(@"Download completed with error: %@",error);
         NSLog(@"%@",[NSString stringWithFormat:@"%@",[[task originalRequest]URL]]);
         
         [self.complrteDataDic setObject:[NSNull null] forKey:[NSString stringWithFormat:@"%@",[[task originalRequest]URL]]];
@@ -247,6 +248,45 @@
         }
     }];
 
+}
+-(NSArray*)encodeUrlFromJapaneseUrl:(NSArray*)originalUrlArray{
+    
+    NSLock*addArrayLock;
+    NSMutableArray*encodedUrlArray=[[NSMutableArray alloc]init];
+    
+    dispatch_group_t group = dispatch_group_create();
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    
+    for (NSString*urlStr in originalUrlArray) {
+        
+    dispatch_group_async(group, queue, ^{
+        
+        CFStringRef originalString=(__bridge CFStringRef)urlStr;
+        CFStringRef encodedString=CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,originalString,NULL,(CFStringRef)@"<>{}|^[]`", kCFStringEncodingUTF8);
+        NSString*escapedUrl=(__bridge NSString*)encodedString;
+        
+        [addArrayLock lock];
+        
+        @try {
+            
+            [encodedUrlArray addObject:escapedUrl];
+        
+        }
+        @finally {
+            
+            [addArrayLock unlock];
+        
+        }
+    
+    });
+    
+    }
+    
+    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    
+    NSLog(@"%@",encodedUrlArray);
+    
+    return encodedUrlArray;
 }
 
 @end

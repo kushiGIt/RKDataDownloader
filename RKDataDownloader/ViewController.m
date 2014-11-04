@@ -52,7 +52,7 @@
 -(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError dataWithUrl:(NSString *)urlStr{
     
 //    NSLog(@"%ld",(unsigned long)data.length);
-//    NSLog(@"%@",readingDataError);
+    NSLog(@"%@",readingDataError);
     
 }
 -(void)didFinishAllDownloadsWithDataDictinary:(NSDictionary *)dataDic withErrorDic:(NSDictionary *)errorDic{
