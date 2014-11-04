@@ -141,10 +141,6 @@
 
 -(void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error{
     
-    NSLog(@"%@",[[self.sessionTask originalRequest]URL]);
-    NSLog(@"%@",self.sessionTask);
-    NSLog(@"%lu",(unsigned long)task.taskIdentifier);
-    
     if (error != nil) {
         
         NSLog(@"Download completed with error: %@",error);
@@ -283,8 +279,6 @@
     }
     
     dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
-    
-    NSLog(@"%@",encodedUrlArray);
     
     return encodedUrlArray;
 }

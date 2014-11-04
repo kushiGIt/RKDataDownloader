@@ -51,8 +51,8 @@
 }
 -(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError dataWithUrl:(NSString *)urlStr{
     
-//    NSLog(@"%ld",(unsigned long)data.length);
-    NSLog(@"%@",readingDataError);
+    NSLog(@"recive data size is %ld byte",(unsigned long)data.length);
+    //NSLog(@"%@",readingDataError);
     
 }
 -(void)didFinishAllDownloadsWithDataDictinary:(NSDictionary *)dataDic withErrorDic:(NSDictionary *)errorDic{
