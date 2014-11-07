@@ -31,7 +31,7 @@
 
 @implementation RKDataDownloader
 
--(id)initWithUrlArray:(NSArray*)urlArray{
+-(id)initWithUrlArray_background:(NSArray*)urlArray{
     
     dispatch_semaphore_t semaphone =dispatch_semaphore_create(0);
     dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
@@ -43,9 +43,9 @@
             self.complrteDataDic=[[NSMutableDictionary alloc]init];
             
             for (NSString*sorceURL in [self encodeUrlFromJapaneseUrl:urlArray]) {
+                
                 [self.taskDataDic setObject:[NSNumber numberWithDouble:0.0] forKey:sorceURL];
-                
-                
+            
             }
             
             self.taskCount=(double)self.taskDataDic.count;
@@ -69,6 +69,45 @@
     
     return self;
 }
+-(id)initWithUrlArray_defaults:(NSArray *)urlArray{
+    
+    dispatch_semaphore_t semaphone =dispatch_semaphore_create(0);
+    dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
+        
+        if (self==[super init]) {
+            
+            self.taskDataDic=[[NSMutableDictionary alloc]init];
+            self.completeDataErrorDic=[[NSMutableDictionary alloc]init];
+            self.complrteDataDic=[[NSMutableDictionary alloc]init];
+            
+            for (NSString*sorceURL in [self encodeUrlFromJapaneseUrl:urlArray]) {
+                
+                [self.taskDataDic setObject:[NSNumber numberWithDouble:0.0] forKey:sorceURL];
+                
+            }
+            
+            self.taskCount=(double)self.taskDataDic.count;
+            
+            NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+            sessionConfiguration.HTTPMaximumConnectionsPerHost = 5;
+            
+            self.session=[NSURLSession sessionWithConfiguration:sessionConfiguration delegate:(id)self delegateQueue:nil];
+            
+            self.isInitWithArray=YES;
+            
+            self.completeTaskCount=0;
+            
+        }
+        
+        dispatch_semaphore_signal(semaphone);
+        
+    });
+    
+    dispatch_semaphore_wait(semaphone, DISPATCH_TIME_FOREVER);
+    
+    return self;
+    
+}
 -(void)startDownloads{
     
     if (self.isInitWithArray==YES) {
@@ -79,6 +118,8 @@
             [self.sessionTask resume];
             
         }
+        
+        self.isInitWithArray=NO;
     
     }else{
         
@@ -86,9 +127,9 @@
         
     }
     
+    
 }
 #pragma mark - NSURLSession Delegate method implementation
-
 -(void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location{
     
     if ([self.delegate respondsToSelector:@selector(didFinishDownloadData:withError:dataWithUrl:)] || [self.delegate respondsToSelector:@selector(didFinishAllDownloadsWithDataDictinary:withErrorDic:)]) {
@@ -186,33 +227,40 @@
             __block double progress=0.0;
             
             
-            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]]];
+            
+            
+            dispatch_group_t group = dispatch_group_create();
+            NSLock *RegulationsInProgress;
+            
+            for (NSNumber *progressNum in [self.taskDataDic allValues]) {
                 
-                dispatch_sync(dispatch_get_main_queue(), ^{
+                dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+                dispatch_group_async(group, queue, ^{
                     
-                    [self.taskDataDic setObject:[NSNumber numberWithDouble:(double)totalBytesWritten / (double)totalBytesExpectedToWrite] forKey:[NSString stringWithFormat:@"%@",[[downloadTask originalRequest]URL]]];
+                    [RegulationsInProgress lock];
                     
-                    for (NSNumber *progressNum in [self.taskDataDic allValues]) {
+                    @try {
                         
                         progress=progress+[progressNum doubleValue];
-                        
-                    }
                     
+                    }
+                    @finally {
+                        
+                        [RegulationsInProgress unlock];
+                    
+                    }
+                
                 });
-                
-                dispatch_semaphore_signal(semaphore);
-                
-            });
             
-            while(dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW))
-                [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1f]];
-
+            }
+            
+            dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
             
             [self.delegate fileDownloadProgress:[NSNumber numberWithDouble:progress/self.taskCount]];
             
         }
-
+        
     }
 }
 

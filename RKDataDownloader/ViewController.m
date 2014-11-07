@@ -25,7 +25,7 @@
     [array addObject:@"http://www.kgw-sense.com/homare/blog/udata/猫.jpg"];
     [array addObject:@"http://bluemark.info/wp-content/uploads/2013/02/3a4465fcdc9a8bb92e40ac1456d52d6f.jpg"];
     
-    RKDataDownloader*test1=[[RKDataDownloader alloc]initWithUrlArray:array];
+    RKDataDownloader*test1=[[RKDataDownloader alloc]initWithUrlArray_background:array];
     [test1 startDownloads];
     
     test1.delegate=self;
@@ -38,8 +38,6 @@
 }
 
 -(void)fileDownloadProgress:(NSNumber *)progress{
-    
-    NSLog(@"%f",[progress floatValue]);
     
     dispatch_queue_t mainQueue = dispatch_get_main_queue();
     dispatch_async(mainQueue, ^{

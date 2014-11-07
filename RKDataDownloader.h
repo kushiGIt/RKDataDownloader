@@ -25,13 +25,21 @@
  */
 -(void)startDownloads;
 /**
- *  Init and set download url. After use this methods,call -(void)startDownloads.
+ *  Init and set download url with background session. After use this methods,call -(void)startDownloads.
  *
  *  @param urlArray string url in array.
  *
  *  @return (id)self
  */
--(id)initWithUrlArray:(NSArray*)urlArray;
+-(id)initWithUrlArray_background:(NSArray*)urlArray;
+/**
+ *  Init and set download url with defaults session. After use this methods,call -(void)startDownloads.
+ *
+ *  @param urlArray urlArray string url in array.
+ *
+ *  @return (id)self
+ */
+-(id)initWithUrlArray_defaults:(NSArray *)urlArray;
 /**
  *  Do not use this methods.If you use this methods,app is going to clash.
  *
