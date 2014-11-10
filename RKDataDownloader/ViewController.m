@@ -10,6 +10,10 @@
 
 @interface ViewController (){
     IBOutlet UIProgressView *progressView;
+    IBOutlet UIImageView *testimageview;
+    IBOutlet UITextView *logView;
+    NSDictionary*dic;
+    int touch_count;
 }
 
 @end
@@ -29,6 +33,8 @@
     [test1 startDownloads];
     
     test1.delegate=self;
+    
+    touch_count=0;
 
 }
 
@@ -50,17 +56,25 @@
 -(void)didFinishDownloadData:(NSData *)data withError:(NSError *)readingDataError dataWithUrl:(NSString *)urlStr{
     
     NSLog(@"recive data size is %ld byte",(unsigned long)data.length);
-    //NSLog(@"%@",readingDataError);
     
 }
 -(void)didFinishAllDownloadsWithDataDictinary:(NSDictionary *)dataDic withErrorDic:(NSDictionary *)errorDic{
     
+    dic=[[NSDictionary alloc]initWithDictionary:dataDic];
     
-    dispatch_queue_t mainQueue = dispatch_get_main_queue();
-    dispatch_async(mainQueue, ^{
+}
+-(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
+    
+    touch_count++;
+    
+    if (touch_count==dic.count+1) {
         
-        NSLog(@"errordic=%@",errorDic);
-        NSLog(@"data=%@",dataDic);
-    });
+        touch_count=1;
+        
+    }
+    
+    testimageview.image=[UIImage imageWithData:[dic objectForKey:[[dic allKeys]objectAtIndex:(NSUInteger)touch_count-1]]];
+    testimageview.contentMode=UIViewContentModeScaleAspectFit;
+    
 }
 @end

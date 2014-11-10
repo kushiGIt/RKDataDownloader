@@ -29,7 +29,9 @@
 
 @end
 
-@implementation RKDataDownloader
+@implementation RKDataDownloader{
+    NSCache*dataCashe;
+}
 
 -(id)initWithUrlArray_background:(NSArray*)urlArray{
     
@@ -37,6 +39,8 @@
     dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
         
         if (self==[super init]) {
+            
+            [self saveContext];
             
             self.taskDataDic=[[NSMutableDictionary alloc]init];
             self.completeDataErrorDic=[[NSMutableDictionary alloc]init];
@@ -295,7 +299,7 @@
 }
 -(NSArray*)encodeUrlFromJapaneseUrl:(NSArray*)originalUrlArray{
     
-    NSLock*addArrayLock;
+    NSLock*addArrayLock=[[NSLock alloc]init];
     NSMutableArray*encodedUrlArray=[[NSMutableArray alloc]init];
     
     dispatch_group_t group = dispatch_group_create();
@@ -305,13 +309,13 @@
         
     dispatch_group_async(group, queue, ^{
         
-        CFStringRef originalString=(__bridge CFStringRef)urlStr;
-        CFStringRef encodedString=CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,originalString,NULL,(CFStringRef)@"<>{}|^[]`", kCFStringEncodingUTF8);
-        NSString*escapedUrl=(__bridge NSString*)encodedString;
-        
         [addArrayLock lock];
         
         @try {
+            
+            CFStringRef originalString=(__bridge CFStringRef)urlStr;
+            CFStringRef encodedString=CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,originalString,NULL,(CFStringRef)@"<>{}|^[]`", kCFStringEncodingUTF8);
+            NSString*escapedUrl=(__bridge NSString*)encodedString;
             
             [encodedUrlArray addObject:escapedUrl];
         
@@ -330,5 +334,198 @@
     
     return encodedUrlArray;
 }
+#pragma mark - Cheak duplication url
++(NSArray*)cheakDuplicationURLString:(NSArray*)needCheakArray cheakDuplicateFromCashe:(BOOL)isCheakDuplicationCashe cheakDuplicateFromURLArray:(BOOL)isCheakDuplicationArray withCasheKey:(NSString*)keyStr{
+    
+    __block NSSet*set;
+    __block NSCache*dataCashe=[[NSCache alloc]init];
+    
+    dispatch_semaphore_t semaphone =dispatch_semaphore_create(0);
+    dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),^{
+        
+        if (isCheakDuplicationCashe&&isCheakDuplicationArray) {
+            
+            NSMutableArray*allKeys=[[NSMutableArray alloc]initWithArray:[[dataCashe objectForKey:keyStr] allKeys]];
+            [allKeys addObjectsFromArray:needCheakArray];
+            
+            set=[[NSSet alloc]initWithArray:allKeys];
+            
+            
+        }else if(isCheakDuplicationArray){
+            
+            set=[[NSSet alloc]initWithArray:needCheakArray];
+            
+        }else if (isCheakDuplicationCashe){
+            
+            NSMutableArray*allKeys=[[NSMutableArray alloc]initWithArray:[[dataCashe objectForKey:keyStr] allKeys]];
+            [allKeys addObjectsFromArray:needCheakArray];
+            
+            set=[[NSSet alloc]initWithArray:allKeys];
+            
+        }
+        
+        
+        dispatch_semaphore_signal(semaphone);
+        
+    });
+    
+    dispatch_semaphore_wait(semaphone, DISPATCH_TIME_FOREVER);
+    
+    
+    return [set allObjects];
+    
+}
+#pragma mark - save to coredata
+- (NSURL*)createStoreURL {
+    
+    NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+    NSString *path = [[directories lastObject] stringByAppendingPathComponent:@"RKDataDownloader.sqlite"];
+    NSURL *storeURL = [NSURL fileURLWithPath:path];
+    
+    return storeURL;
 
+}
+- (NSURL*)createModelURL {
+    
+    NSBundle *mainBundle = [NSBundle mainBundle];
+    
+    NSString *path = [mainBundle pathForResource:@"RKDataLifeTimeModel" ofType:@"momd"];
+    NSURL *modelURL = [NSURL fileURLWithPath:path];
+    
+    return modelURL;
+
+}
+- (NSManagedObjectContext*)createManagedObjectContext {
+    
+    NSURL *modelURL = [self createModelURL];
+    NSURL *storeURL = [self createStoreURL];
+    
+    NSError *error = nil;
+    
+    NSManagedObjectModel *managedObjectModel=[[NSManagedObjectModel alloc]initWithContentsOfURL:modelURL];
+    
+    NSPersistentStoreCoordinator *persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:managedObjectModel];
+    [persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error];
+    
+    NSManagedObjectContext *managedObjectContent = [[NSManagedObjectContext alloc] init];
+    [managedObjectContent setPersistentStoreCoordinator:persistentStoreCoordinator];
+    
+    return managedObjectContent;
+
+}
+-(void)saveContext{
+    
+    /*
+     
+     NSManagedObject * checkForDuplicate = [self checkDupulicationInEntity:NSStringFromClass([Hoge class])  withKey:@"hoge" withValue:@"hogehoge"];
+     if (regionCheckForDuplicate == NULL) {
+     
+     }else{
+     
+     }
+     
+     */
+    
+    NSManagedObjectContext*context=[[NSManagedObjectContext alloc]init];
+    context=[self createManagedObjectContext];
+    
+    DataLifeTime*dataInfo=[NSEntityDescription insertNewObjectForEntityForName:@"DataLifeTime" inManagedObjectContext:context];
+    
+    dataInfo.data=[[NSString stringWithFormat:@"test data"] dataUsingEncoding:NSUTF8StringEncoding];
+    dataInfo.key=@"a";
+    dataInfo.object_LifeTime=10.5f;
+    
+    NSError *error = nil;
+    
+    if([context save:&error]) {
+        
+        NSLog(@"Save object to CoreData successfully");
+        
+    } else {
+        
+        NSLog(@"Save object to CoreData unsuccessfully");
+        
+    }
+    
+    [self getContext];
+    
+}
+-(void)getContext{
+    
+    NSManagedObjectContext*context=[[NSManagedObjectContext alloc]init];
+    context=[self createManagedObjectContext];
+    
+    NSEntityDescription*entity=[NSEntityDescription entityForName:@"DataLifeTime" inManagedObjectContext:context];
+    
+    NSFetchRequest *request = [[NSFetchRequest alloc]init];
+    [request setEntity:entity];
+    
+    NSString *searchString = @"a";
+    NSPredicate *predicate =[NSPredicate predicateWithFormat:@"key == %@",searchString];
+    [request setPredicate:predicate];
+    
+    NSError *error = nil;
+    NSArray *fetchResults = [context executeFetchRequest:request error:&error];
+    
+    if([fetchResults count] > 0) {
+        
+        NSMutableString *str = [NSMutableString stringWithFormat:@"Found %lu Datas \n",(unsigned long)[fetchResults count]];
+        int i = 0;
+        for (DataLifeTime *ent in fetchResults) {
+            [str appendFormat:@"Num:%d key:%@ data:%@ life_time:%f \n",i,ent.key,ent.data,ent.object_LifeTime];
+            i++;
+        }
+        
+        NSLog(@"%@",str);
+        
+    } else {
+        
+        NSLog(@"Data is None!");
+    
+    }
+    
+}
+-(void)deleteEntityInDataLifeTime{
+    
+    NSManagedObjectContext*managedObjectContext=[[NSManagedObjectContext alloc]init];
+    managedObjectContext=[self createManagedObjectContext];
+    
+    NSFetchRequest * requestDelete = [[NSFetchRequest alloc] init];
+    [requestDelete setEntity:[NSEntityDescription entityForName:@"DataLifeTime" inManagedObjectContext:managedObjectContext]];
+    [requestDelete setIncludesPropertyValues:NO];
+    
+    NSError * error = nil;
+    NSArray * dataArray = [managedObjectContext executeFetchRequest:requestDelete error:&error];
+    
+    for (NSManagedObject * data in dataArray) {
+        [managedObjectContext deleteObject:data];
+    }
+    
+    NSError *saveError = nil;
+    if([managedObjectContext save:&saveError]) {
+        
+        NSLog(@"Delete object to CoreData successfully");
+        
+    } else {
+        
+        NSLog(@"Delete object to CoreData unsuccessfully");
+        
+    };
+
+}
+- (NSManagedObject *)checkDupulicationInEntity:(NSString *) entityName withKey:(NSString *)keyString withValue:(NSString *)valueString{
+    
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:entityName];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K = %@", keyString, valueString];
+    [fetchRequest setPredicate:predicate];
+    
+    NSArray *results = [[self createManagedObjectContext] executeFetchRequest:fetchRequest error:nil];
+    
+    if (results.count > 0) {
+        return [results objectAtIndex:0];
+    }
+    
+    return NULL;
+}
 @end

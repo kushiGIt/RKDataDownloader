@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		771170361A10FB7A002B865D /* DataLifeTime.m in Sources */ = {isa = PBXBuildFile; fileRef = 771170351A10FB7A002B865D /* DataLifeTime.m */; };
 		77C355871A04F7E500EB35B4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355861A04F7E500EB35B4 /* main.m */; };
 		77C3558A1A04F7E500EB35B4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355891A04F7E500EB35B4 /* AppDelegate.m */; };
 		77C3558D1A04F7E500EB35B4 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C3558C1A04F7E500EB35B4 /* ViewController.m */; };
@@ -15,6 +16,7 @@
 		77C355951A04F7E500EB35B4 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 77C355931A04F7E500EB35B4 /* LaunchScreen.xib */; };
 		77C355A11A04F7E500EB35B4 /* RKDataDownloaderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355A01A04F7E500EB35B4 /* RKDataDownloaderTests.m */; };
 		77C355AF1A04F87000EB35B4 /* RKDataDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 77C355AE1A04F87000EB35B4 /* RKDataDownloader.m */; };
+		77D07B231A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 77D07B211A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +30,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		771170341A10FB7A002B865D /* DataLifeTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLifeTime.h; sourceTree = "<group>"; };
+		771170351A10FB7A002B865D /* DataLifeTime.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataLifeTime.m; sourceTree = "<group>"; };
 		77C355811A04F7E500EB35B4 /* RKDataDownloader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RKDataDownloader.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77C355851A04F7E500EB35B4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		77C355861A04F7E500EB35B4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -43,6 +47,7 @@
 		77C355A01A04F7E500EB35B4 /* RKDataDownloaderTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RKDataDownloaderTests.m; sourceTree = "<group>"; };
 		77C355AD1A04F87000EB35B4 /* RKDataDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKDataDownloader.h; sourceTree = "<group>"; };
 		77C355AE1A04F87000EB35B4 /* RKDataDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKDataDownloader.m; sourceTree = "<group>"; };
+		77D07B221A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = RKDataLifeTimeModel.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +71,9 @@
 		77C355781A04F7E500EB35B4 = {
 			isa = PBXGroup;
 			children = (
+				77D07B211A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodeld */,
+				771170341A10FB7A002B865D /* DataLifeTime.h */,
+				771170351A10FB7A002B865D /* DataLifeTime.m */,
 				77C355831A04F7E500EB35B4 /* RKDataDownloader */,
 				77C3559D1A04F7E500EB35B4 /* RKDataDownloaderTests */,
 				77C355821A04F7E500EB35B4 /* Products */,
@@ -224,7 +232,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				771170361A10FB7A002B865D /* DataLifeTime.m in Sources */,
 				77C355AF1A04F87000EB35B4 /* RKDataDownloader.m in Sources */,
+				77D07B231A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodeld in Sources */,
 				77C3558D1A04F7E500EB35B4 /* ViewController.m in Sources */,
 				77C3558A1A04F7E500EB35B4 /* AppDelegate.m in Sources */,
 				77C355871A04F7E500EB35B4 /* main.m in Sources */,
@@ -432,6 +442,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		77D07B211A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				77D07B221A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodel */,
+			);
+			currentVersion = 77D07B221A1027CA009FA083 /* RKDataLifeTimeModel.xcdatamodel */;
+			path = RKDataLifeTimeModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 77C355791A04F7E500EB35B4 /* Project object */;
 }

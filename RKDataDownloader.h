@@ -8,7 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <CoreData/CoreData.h>
 #import "AppDelegate.h"
+#import "DataLifeTime.h"
 
 @class RKDataDownloader;
 
@@ -46,7 +48,6 @@
  *  @return (id)self
  */
 -(id)init;
-
 @end
 
 @protocol RKDataDownloaderDelegate <NSObject>
