@@ -16,7 +16,6 @@
 
 @protocol RKDataDownloaderDelegate;
 
-
 @interface RKDataDownloader : NSObject<NSURLSessionDelegate>{
     
 }

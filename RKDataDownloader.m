@@ -40,7 +40,7 @@
         
         if (self==[super init]) {
             
-            [self saveContext];
+            [self setContextData:[@"kushihata" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"TEST_OBJECT" WithObjectLifeTime:[NSDate date] ischeckDupulicationInEntity:YES];
             
             self.taskDataDic=[[NSMutableDictionary alloc]init];
             self.completeDataErrorDic=[[NSMutableDictionary alloc]init];
@@ -414,27 +414,36 @@
     return managedObjectContent;
 
 }
--(void)saveContext{
+-(void)setContextData:(NSData*)originalData forKey:(NSString*)keyStr WithObjectLifeTime:(NSDate*)objectLongevityDate ischeckDupulicationInEntity:(BOOL)ischeckDupulication{
     
-    /*
-     
-     NSManagedObject * checkForDuplicate = [self checkDupulicationInEntity:NSStringFromClass([Hoge class])  withKey:@"hoge" withValue:@"hogehoge"];
-     if (regionCheckForDuplicate == NULL) {
-     
-     }else{
-     
-     }
-     
-     */
+    if (ischeckDupulication) {
+        
+        NSManagedObject * checkForDuplicate = [self checkDupulicationInEntity:@"DataLifeTime"  withKey:keyStr];
+        
+        if (checkForDuplicate!=NULL) {
+            
+            [self deleteCoreDataObjectInEntity:@"DataLifeTime" withKey:keyStr];
+            
+        }
+    
+    }
+    
+    [self saveContext:originalData forKey:keyStr objectLifeTime:objectLongevityDate];
+    
+    //test
+    [self getContextInEntity:@"DataLifeTime" withKey:@"TEST_OBJECT"];
+    
+}
+-(void)saveContext:(NSData*)data forKey:(NSString*)key objectLifeTime:(NSDate*)date{
     
     NSManagedObjectContext*context=[[NSManagedObjectContext alloc]init];
     context=[self createManagedObjectContext];
     
     DataLifeTime*dataInfo=[NSEntityDescription insertNewObjectForEntityForName:@"DataLifeTime" inManagedObjectContext:context];
     
-    dataInfo.data=[[NSString stringWithFormat:@"test data"] dataUsingEncoding:NSUTF8StringEncoding];
-    dataInfo.key=@"a";
-    dataInfo.object_LifeTime=10.5f;
+    dataInfo.data=data;
+    dataInfo.key=key;
+    dataInfo.object_LifeTime=date;
     
     NSError *error = nil;
     
@@ -448,20 +457,18 @@
         
     }
     
-    [self getContext];
-    
 }
--(void)getContext{
+-(void)getContextInEntity:(NSString *)entityName withKey:(NSString *)keyString{
     
     NSManagedObjectContext*context=[[NSManagedObjectContext alloc]init];
     context=[self createManagedObjectContext];
     
-    NSEntityDescription*entity=[NSEntityDescription entityForName:@"DataLifeTime" inManagedObjectContext:context];
+    NSEntityDescription*entity=[NSEntityDescription entityForName:entityName inManagedObjectContext:context];
     
     NSFetchRequest *request = [[NSFetchRequest alloc]init];
     [request setEntity:entity];
     
-    NSString *searchString = @"a";
+    NSString *searchString = keyString;
     NSPredicate *predicate =[NSPredicate predicateWithFormat:@"key == %@",searchString];
     [request setPredicate:predicate];
     
@@ -473,7 +480,7 @@
         NSMutableString *str = [NSMutableString stringWithFormat:@"Found %lu Datas \n",(unsigned long)[fetchResults count]];
         int i = 0;
         for (DataLifeTime *ent in fetchResults) {
-            [str appendFormat:@"Num:%d key:%@ data:%@ life_time:%f \n",i,ent.key,ent.data,ent.object_LifeTime];
+            [str appendFormat:@"Num:%d key:%@ data:%@ life_time:%@ \n",i,ent.key,ent.data,ent.object_LifeTime];
             i++;
         }
         
@@ -486,13 +493,13 @@
     }
     
 }
--(void)deleteEntityInDataLifeTime{
+-(void)deleteEntityInDataLifeTimeInEntity:(NSString *)entityName{
     
     NSManagedObjectContext*managedObjectContext=[[NSManagedObjectContext alloc]init];
     managedObjectContext=[self createManagedObjectContext];
     
     NSFetchRequest * requestDelete = [[NSFetchRequest alloc] init];
-    [requestDelete setEntity:[NSEntityDescription entityForName:@"DataLifeTime" inManagedObjectContext:managedObjectContext]];
+    [requestDelete setEntity:[NSEntityDescription entityForName:entityName inManagedObjectContext:managedObjectContext]];
     [requestDelete setIncludesPropertyValues:NO];
     
     NSError * error = nil;
@@ -514,18 +521,61 @@
     };
 
 }
-- (NSManagedObject *)checkDupulicationInEntity:(NSString *) entityName withKey:(NSString *)keyString withValue:(NSString *)valueString{
+-(void)deleteCoreDataObjectInEntity:(NSString *)entityName withKey:(NSString *)keyString{
+    
+    NSManagedObjectContext*managedObjectContext=[[NSManagedObjectContext alloc]init];
+    managedObjectContext=[self createManagedObjectContext];
+    
+    
+    NSFetchRequest *deleteRequest = [[NSFetchRequest alloc] init];
+    
+    [deleteRequest setEntity:[NSEntityDescription entityForName:entityName inManagedObjectContext:managedObjectContext]];
+    [deleteRequest setIncludesPropertyValues:NO];
+    
+    NSPredicate * predicate = [NSPredicate predicateWithFormat:@"key == %@",keyString];
+    [deleteRequest setPredicate:predicate];
+    
+    
+    
+    NSError *error = nil;
+    
+    NSArray *results = [managedObjectContext executeFetchRequest:deleteRequest error:&error];
+    
+    
+    for (NSManagedObject *data in results) {
+        
+        [managedObjectContext deleteObject:data];
+    
+    }
+    
+    NSError *saveError = nil;
+    
+    if([managedObjectContext save:&saveError]) {
+        
+        NSLog(@"Delete object to CoreData object successfully");
+        
+    } else {
+        
+        NSLog(@"Delete object to CoreData object unsuccessfully");
+        
+    };
+
+}
+- (NSManagedObject *)checkDupulicationInEntity:(NSString *)entityName withKey:(NSString *)keyString{
     
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] initWithEntityName:entityName];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K = %@", keyString, valueString];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"key = %@",keyString];
     [fetchRequest setPredicate:predicate];
     
     NSArray *results = [[self createManagedObjectContext] executeFetchRequest:fetchRequest error:nil];
     
     if (results.count > 0) {
+        
         return [results objectAtIndex:0];
+    
     }
     
     return NULL;
+
 }
 @end

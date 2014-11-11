@@ -14,6 +14,6 @@
 
 @property (nonatomic, retain) NSData * data;
 @property (nonatomic, retain) NSString * key;
-@property (nonatomic) NSTimeInterval object_LifeTime;
+@property (nonatomic) NSDate * object_LifeTime;
 
 @end
